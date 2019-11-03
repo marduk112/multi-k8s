@@ -1,0 +1,31 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t marduk112/react-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true marduk112/react-test npm run test
+after_success:
+  - docker build -t marduk112/multi-client ./client
+  - docker build -t marduk112/multi-nginx ./nginx
+  - docker build -t marduk112/multi-server ./server
+  - docker build -t marduk112/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push marduk112/multi-client
+  - docker push marduk112/multi-nginx
+  - docker push marduk112/multi-server
+  - docker push marduk112/multi-worker
+# deploy:
+#     provider: elasticbeanstalk
+#     region: "eu-central" #region from url or us-west-2
+#     app: "docker-react" #app name on AWS
+#     env: "Docker-react-env" #environment name for app
+#     bucket_name: "elasticbeanstalk-eu-central-..." # storage, get zip file from it
+#     bucket_path: "docker-react" # equals to app name
+#     on:
+#         branch: master
+#     access_key_id: $AWS_ACCESS_KEY
+#     secret_access_key:
+#         secure: "$AWS_SECRET_KEY"
