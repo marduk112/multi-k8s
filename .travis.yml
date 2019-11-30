@@ -12,8 +12,8 @@ before_install:
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
   - gcloud config set project earnest-keep-260014 # project id, not name
-  - gcloud config set compute/zone us-west1-a	#zone, i.e. us-central1-a
-  - gcloud container clusters get-credentials standard-cluster-1	#name of cluster i.e. multi-cluster
+  - gcloud config set compute/zone europe-west2-a	#zone, i.e. us-central1-a
+  - gcloud container clusters get-credentials multi-cluster	#name of cluster i.e. multi-cluster
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker build -t marduk112/react-test -f ./client/Dockerfile.dev ./client
 script:
