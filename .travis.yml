@@ -1,9 +1,26 @@
 sudo: required
 services:
   - docker
+env:
+  global:
+    - SHA=$(git rev-parse HEAD)
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
   - curl https://sdk.cloud.google.com | bash > /dev/null;
   - source $HOME/google-cloud-sdk/path.bash.inc
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
+  - gcloud config set project earnest-keep-260014 # project id, not name
+  - gcloud config set compute/zone us-west1-a	#zone, i.e. us-central1-a
+  - gcloud container clusters get-credentials standard-cluster-1	#name of cluster i.e. multi-cluster
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t marduk112/react-test -f ./client/Dockerfile.dev ./client
+script:
+ - docker run -e CI=true marduk112/multi-k8s npm run test
 secure: "RMEPOIRJ+1H+RUyhA/j9MtfpZzA0iVB2KEwK0LnpTjVafgAqZZCBYhHTLbbViK7Hqp/X38tAIztwrD9Fv2xKU9yXogB+8MmMNgnii6hvqmLmIfsnz6ElLBw/8EMN59ZFioMsBpbpE4WEUomxZ7bd7Zw4B/zreOCo0zH4Ic9SYQiIujXi1YyTNLGsblocQVm5hikmkcq6HvVnmFbtlgYpoOiMMu/opH7HtpPGR3/X9waZno2RPppX9GSnDomcKQnn57kAM2BEvv6Igz+0MZlUg96jCkcuSz4DwJZF9+LvwJ8KIIbi1FxEgpxjrnO0r+6St3X1QwpHfn3dqpxfhWMhoaFxdd29Lyaj27ng91g5PTXZlUgQWr8Ozb6448rzos80nSkYQxzselLQkKV3xKlPYWSnFRrmIwloB19mDeuoEA5q8VqrRq/tZzJolJJt9Rd5dLFXq2NGFtsbwAHLp45jb9Stz94snA8HS+lat4JRxvljJrsRu2cbued0yUp3Reu9Ac7j2P+66VUciZO1no9L2l24CqWCFc7IOxxMCnkeGt2pv+OhCYvCARGXFlLjjnUx0clp1Hy/KoHYUHYN/r9VTmFCMa6lAGNm/R7zktyl9Ry+c5WQt5F0Ju3nbLFV98b0ZDjeOdTyWDx/Z0BTC8s1wY8lpT5Vg97wQcmVt6qZCtA="
+
+deploy:
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: master
